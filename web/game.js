@@ -171,39 +171,56 @@ function wireUI() {
 
 // Initialize
 function init() {
-    GAME.canvas = document.getElementById('gameCanvas');
-    GAME.ctx = GAME.canvas.getContext('2d');
-    GAME.particlesCanvas = document.getElementById('particlesCanvas');
-    GAME.particlesCtx = GAME.particlesCanvas.getContext('2d');
+    try {
+        GAME.canvas = document.getElementById('gameCanvas');
+        GAME.ctx = GAME.canvas?.getContext('2d');
+        GAME.particlesCanvas = document.getElementById('particlesCanvas');
+        GAME.particlesCtx = GAME.particlesCanvas?.getContext('2d');
 
-    wireUI();
-    initModal();
+        if (!GAME.ctx || !GAME.particlesCtx) {
+            console.error('Canvas not supported');
+            // Hide loading screen anyway
+            document.getElementById('loading')?.classList.add('hidden');
+            return;
+        }
 
-    // Load saved data
-    const savedScore = localStorage.getItem('bikeRacerHighScore');
-    if (savedScore && SECURITY.validateScore(parseInt(savedScore))) {
-        GAME.highScore = parseInt(savedScore);
+        wireUI();
+        initModal();
+
+        // Load saved data
+        const savedScore = localStorage.getItem('bikeRacerHighScore');
+        if (savedScore && SECURITY.validateScore(parseInt(savedScore))) {
+            GAME.highScore = parseInt(savedScore);
+        }
+
+        const savedSound = localStorage.getItem('bikeRacerSound');
+        if (savedSound !== null) GAME.soundEnabled = savedSound === 'true';
+
+        const savedMusic = localStorage.getItem('bikeRacerMusic');
+        if (savedMusic !== null) GAME.musicEnabled = savedMusic === 'true';
+        
+        const savedCoins = localStorage.getItem('bikeRacerCoins');
+        if (savedCoins) GAME.totalCoins = parseInt(savedCoins, 10) || 0;
+        
+        const savedAchievements = localStorage.getItem('bikeRacerAchievements');
+        if (savedAchievements) {
+            try {
+                GAME.achievements = { ...GAME.achievements, ...JSON.parse(savedAchievements) };
+            } catch { }
+        }
+
+        loadAssets();
+        setupControls();
+        
+        // Safe call to premium features
+        if (typeof updateCoinsDisplay === 'function') {
+            updateCoinsDisplay();
+        }
+    } catch (error) {
+        console.error('Initialization error:', error);
+        // Hide loading screen on error
+        document.getElementById('loading')?.classList.add('hidden');
     }
-
-    const savedSound = localStorage.getItem('bikeRacerSound');
-    if (savedSound !== null) GAME.soundEnabled = savedSound === 'true';
-
-    const savedMusic = localStorage.getItem('bikeRacerMusic');
-    if (savedMusic !== null) GAME.musicEnabled = savedMusic === 'true';
-    
-    const savedCoins = localStorage.getItem('bikeRacerCoins');
-    if (savedCoins) GAME.totalCoins = parseInt(savedCoins, 10) || 0;
-    
-    const savedAchievements = localStorage.getItem('bikeRacerAchievements');
-    if (savedAchievements) {
-        try {
-            GAME.achievements = { ...GAME.achievements, ...JSON.parse(savedAchievements) };
-        } catch { }
-    }
-
-    loadAssets();
-    setupControls();
-    updateCoinsDisplay();
 }
 
 // Asset Loading
@@ -213,9 +230,14 @@ function loadAssets() {
 
     function checkAllLoaded() {
         loadedCount++;
-        if (loadedCount === totalAssets) {
+        console.log(`Asset loaded: ${loadedCount}/${totalAssets}`);
+        if (loadedCount >= totalAssets) {
             GAME.assets.loaded = true;
-            document.getElementById('loading')?.classList.add('hidden');
+            const loadingEl = document.getElementById('loading');
+            if (loadingEl) {
+                loadingEl.classList.add('hidden');
+                console.log('All assets loaded, hiding loading screen');
+            }
         }
     }
 
@@ -223,6 +245,7 @@ function loadAssets() {
     GAME.assets.bike = new Image();
     GAME.assets.bike.onload = checkAllLoaded;
     GAME.assets.bike.onerror = () => {
+        console.log('Bike image not found, using fallback');
         GAME.assets.bike = createFallbackBike();
         checkAllLoaded();
     };
@@ -233,6 +256,7 @@ function loadAssets() {
         const car = new Image();
         car.onload = checkAllLoaded;
         car.onerror = () => {
+            console.log(`Car${i} image not found, using fallback`);
             GAME.assets.cars.push(createFallbackCar(i));
             checkAllLoaded();
         };
@@ -250,6 +274,15 @@ function loadAssets() {
         checkAllLoaded();
     });
     GAME.assets.music.src = 'bg.mp3';
+    
+    // Fallback timeout - hide loading after 3 seconds regardless
+    setTimeout(() => {
+        if (!GAME.assets.loaded) {
+            console.log('Asset loading timeout, forcing hide');
+            GAME.assets.loaded = true;
+            document.getElementById('loading')?.classList.add('hidden');
+        }
+    }, 3000);
 }
 
 // Fallback graphics if images not found
