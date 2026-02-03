@@ -1,33 +1,63 @@
-# 🏍️ Bike Racer - Professional HTML5 Game
+# 🏍️ Bike Racer - Premium Mobile Racing Game
 
-A polished, secure, and student-friendly mobile racing game built with vanilla JavaScript. Ready for monetization and Play Store deployment.
+A fully-featured, premium mobile racing game with power-ups, coins, particles, achievements, and professional polish. Ready for Play Store & App Store deployment.
 
 ---
 
-## ✨ Features
+## 🌟 Premium Features
 
-### 🎮 Game Features
-- **Smooth 60 FPS gameplay** with optimized canvas rendering
-- **Progressive difficulty** - speed increases as you score
-- **Day/Night modes** - dynamic environment changes
-- **Multiple control methods**:
-  - Keyboard (Arrow keys)
-  - Touch controls (tap left/right)
-  - Tilt controls (device orientation)
-- **High score persistence** with localStorage
-- **Screen shake effects** on collision
-- **Haptic feedback** (vibration on supported devices)
-- **Responsive design** - works on all screen sizes
+### 🎮 Core Gameplay
+- **Smooth 60 FPS gameplay** with delta-time physics
+- **Power-Up System**: 3 strategic power-ups (🛡️ Shield, ⏱️ Slow-Mo, 🧲 Magnet)
+- **Coin Collection**: Animated coins with glow effects  
+- **Combo Multipliers**: Chain collections for ×2, ×3, ×5+ rewards
+- **Particle Effects**: Beautiful explosions, glows, and bursts
+- **Progressive difficulty** - balanced speed curve (max speed: 15)
+- **Achievement System**: 5 unlockable achievements with toast notifications
+- **Day/Night modes** - automatic environment switching (Level 4+)
 
-### 🎨 UI/UX Features
-- **Professional menu system** with smooth animations
-- **Real-time HUD** displaying score, speed, and level
+### 🎨 Premium UI/UX
+- **4 Dynamic HUD Elements**:
+  - 🪙 Coins counter (top-left)
+  - ⚡ Combo multiplier badge (top-right)  
+  - 🛡️ Active power-up display (top-center)
+  - 🏆 Achievement toast (center pop-up)
+- **Professional modal dialogs** (instructions, settings)
+- **Animated badges** with pulse, scale, rotate effects
+- **Shield glow effect** - blue pulsing aura when protected
+- **Real-time stats HUD** - score, speed, level
 - **Loading screen** with progress indicator
-- **Game over screen** with statistics
-- **Pause functionality** (press P or pause button)
-- **Settings menu** for sound/music preferences
-- **Visual feedback** for all interactions
-- **Student-friendly** - clean, intuitive interface
+
+### 🎯 Control Systems
+- **Keyboard**: Arrow keys for lane switching
+- **Touch controls**: Tap left/right on screen
+- **Tilt controls**: Device orientation with 220ms cooldown
+- **Haptic feedback**: Vibration on collisions + achievements
+
+### ⚡ Power-Ups Explained
+1. **🛡️ Shield** (8 sec): Protects from one collision, deflects obstacles
+2. **⏱️ Slow-Mo** (5 sec): Reduces traffic speed 50% for easier navigation  
+3. **🧲 Magnet** (5 sec): Auto-attracts coins within 80px radius
+
+### 💰 Coin & Combo System
+- **Coin spawn rate**: 25% per traffic spawn
+- **Combo timeout**: 3 seconds between collections
+- **Combo rewards**: Each coin value × current multiplier
+- **Persistent total coins**: Saved across all sessions
+
+### 🏆 Achievement System
+- **First Coin!**: Collect your first coin
+- **Combo Master**: Reach ×5 combo multiplier  
+- **Century!**: Score 100 points
+- **Coin Collector**: Collect 100 total coins
+- **Road Survivor**: Score 500 points
+
+### ✨ Particle Effects
+- **Gold particles**: Coin collection (8 particles)
+- **Cyan/Green particles**: Power-up collection (8 particles)
+- **Red/Orange explosion**: Collision (15 particles)
+- **Physics-based**: Gravity, velocity, alpha fade-out
+- **Separate canvas layer**: No performance impact on main game
 
 ### 🔒 Security Features
 
