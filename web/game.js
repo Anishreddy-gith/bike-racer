@@ -25,22 +25,31 @@ const CONFIG = {
     // Road is drawn from x=90..310 (220px). These are visually centered lane targets.
     lanePositions: [120, 200, 280],
     initialSpeed: 4,
-    speedIncrement: 0.3,
-    spawnInterval: 950,
-    maxSpeed: 12,
-    scoreForSpeedUp: 8,
+    speedIncrement: 0.25,
+    spawnInterval: 1100,
+    maxSpeed: 15,
+    scoreForSpeedUp: 10,
     moveSmoothing: 18, // higher = snappier lane changes
     tiltThreshold: 16,
-    tiltCooldownMs: 220
+    tiltCooldownMs: 220,
+    // Premium features
+    powerUpSpawnChance: 0.08,
+    coinSpawnChance: 0.25,
+    comboTimeout: 3000,
+    particleLifetime: 1200
 };
 
 // Game State
 const GAME = {
     canvas: null,
     ctx: null,
+    particlesCanvas: null,
+    particlesCtx: null,
     state: 'menu', // menu, playing, paused, gameover
     score: 0,
     highScore: 0,
+    coins: 0,
+    totalCoins: 0,
     speed: CONFIG.initialSpeed,
     level: 1,
     roadOffset: 0,
@@ -48,6 +57,10 @@ const GAME = {
     shake: 0,
     soundEnabled: true,
     musicEnabled: true,
+    combo: 0,
+    comboTimer: 0,
+    powerUp: null, // { type: 'shield' | 'slowmo' | 'magnet', duration: ms }
+    powerUpTimer: 0,
     assets: {
         loaded: false,
         bike: null,
@@ -63,7 +76,17 @@ const GAME = {
     },
     entities: {
         bike: null,
-        traffic: []
+        traffic: [],
+        coins: [],
+        powerUps: [],
+        particles: []
+    },
+    achievements: {
+        firstCoin: false,
+        combo5: false,
+        score100: false,
+        collector: false,
+        survivor: false
     }
 };
 
@@ -150,25 +173,37 @@ function wireUI() {
 function init() {
     GAME.canvas = document.getElementById('gameCanvas');
     GAME.ctx = GAME.canvas.getContext('2d');
+    GAME.particlesCanvas = document.getElementById('particlesCanvas');
+    GAME.particlesCtx = GAME.particlesCanvas.getContext('2d');
 
     wireUI();
     initModal();
 
-    // Load saved high score (with validation)
+    // Load saved data
     const savedScore = localStorage.getItem('bikeRacerHighScore');
     if (savedScore && SECURITY.validateScore(parseInt(savedScore))) {
         GAME.highScore = parseInt(savedScore);
     }
 
-    // Load saved settings
     const savedSound = localStorage.getItem('bikeRacerSound');
     if (savedSound !== null) GAME.soundEnabled = savedSound === 'true';
 
     const savedMusic = localStorage.getItem('bikeRacerMusic');
     if (savedMusic !== null) GAME.musicEnabled = savedMusic === 'true';
+    
+    const savedCoins = localStorage.getItem('bikeRacerCoins');
+    if (savedCoins) GAME.totalCoins = parseInt(savedCoins, 10) || 0;
+    
+    const savedAchievements = localStorage.getItem('bikeRacerAchievements');
+    if (savedAchievements) {
+        try {
+            GAME.achievements = { ...GAME.achievements, ...JSON.parse(savedAchievements) };
+        } catch { }
+    }
 
     loadAssets();
     setupControls();
+    updateCoinsDisplay();
 }
 
 // Asset Loading
@@ -355,11 +390,16 @@ function startGame() {
 
     // Reset game state
     GAME.score = 0;
+    GAME.coins = 0;
     GAME.speed = CONFIG.initialSpeed;
     GAME.level = 1;
     GAME.roadOffset = 0;
     GAME.frame = 0;
     GAME.shake = 0;
+    GAME.combo = 0;
+    GAME.comboTimer = 0;
+    GAME.powerUp = null;
+    GAME.powerUpTimer = 0;
     GAME.state = 'playing';
 
     // Create bike
@@ -375,8 +415,11 @@ function startGame() {
         height: bikeH
     };
 
-    // Clear traffic
+    // Clear entities
     GAME.entities.traffic = [];
+    GAME.entities.coins = [];
+    GAME.entities.powerUps = [];
+    GAME.entities.particles = [];
 
     // Timers
     GAME.timers.lastTs = 0;
@@ -388,6 +431,13 @@ function startGame() {
     if (hud) hud.style.display = 'flex';
     document.getElementById('pauseBtn')?.classList.add('show');
     document.getElementById('gameOver')?.classList.remove('show');
+    
+    updateScore();
+    document.getElementById('levelDisplay').textContent = GAME.level;
+    document.getElementById('speedDisplay').textContent = Math.floor(GAME.speed * 10);
+    updateCoinsDisplay();
+    updateComboDisplay();
+    updatePowerUpDisplay();
 
     // Start music
     if (GAME.musicEnabled && GAME.assets.music) {
@@ -416,6 +466,44 @@ function spawnCar() {
         img: carImg,
         passed: false
     });
+
+    // Spawn coins
+    if (Math.random() < CONFIG.coinSpawnChance) {
+        spawnCoin();
+    }
+
+    // Spawn power-ups (less frequent)
+    if (Math.random() < CONFIG.powerUpSpawnChance) {
+        spawnPowerUp();
+    }
+}
+
+function spawnCoin() {
+    const lane = Math.floor(Math.random() * 3);
+    GAME.entities.coins.push({
+        lane,
+        x: CONFIG.lanePositions[lane] - 14,
+        y: -60,
+        width: 28,
+        height: 28,
+        collected: false
+    });
+}
+
+function spawnPowerUp() {
+    const types = ['shield', 'slowmo', 'magnet'];
+    const type = types[Math.floor(Math.random() * types.length)];
+    const lane = Math.floor(Math.random() * 3);
+    
+    GAME.entities.powerUps.push({
+        type,
+        lane,
+        x: CONFIG.lanePositions[lane] - 18,
+        y: -70,
+        width: 36,
+        height: 36,
+        collected: false
+    });
 }
 
 function gameLoop(ts) {
@@ -426,6 +514,11 @@ function gameLoop(ts) {
     GAME.timers.lastTs = ts;
 
     const ctx = GAME.ctx;
+
+    // Update timers
+    updatePowerUpTimer(dt);
+    updateComboTimer(dt);
+    updateParticles(dt);
 
     // Spawning (frame-time based)
     GAME.timers.spawnMs += dt * 1000;
@@ -492,11 +585,62 @@ function gameLoop(ts) {
         const k = CONFIG.moveSmoothing;
         const a = 1 - Math.exp(-k * dt);
         bike.x += (bike.targetX - bike.x) * a;
+        
+        // Apply magnet effect if active
+        applyMagnetEffect(bike, dt);
     }
 
-    // Draw bike
+    // Draw coins
+    for (let i = GAME.entities.coins.length - 1; i >= 0; i--) {
+        const coin = GAME.entities.coins[i];
+        coin.y += px;
+        
+        drawCoin(ctx, coin);
+        
+        // Check collection
+        if (bike && !coin.collected && checkCollision(bike, coin)) {
+            collectCoin(coin);
+        }
+        
+        // Remove off-screen
+        if (coin.y > CONFIG.canvasHeight + 50) {
+            GAME.entities.coins.splice(i, 1);
+        }
+    }
+
+    // Draw power-ups
+    for (let i = GAME.entities.powerUps.length - 1; i >= 0; i--) {
+        const powerUp = GAME.entities.powerUps[i];
+        powerUp.y += px;
+        
+        drawPowerUp(ctx, powerUp);
+        
+        // Check collection
+        if (bike && !powerUp.collected && checkCollision(bike, powerUp)) {
+            powerUp.collected = true;
+            activatePowerUp(powerUp.type);
+            createParticle(powerUp.x + powerUp.width / 2, powerUp.y + powerUp.height / 2, 'powerup');
+        }
+        
+        // Remove off-screen
+        if (powerUp.y > CONFIG.canvasHeight + 50) {
+            GAME.entities.powerUps.splice(i, 1);
+        }
+    }
+
+    // Draw bike (with shield effect if active)
     if (bike && isDrawable(GAME.assets.bike)) {
-        ctx.drawImage(GAME.assets.bike, bike.x, bike.y, bike.width, bike.height);
+        if (GAME.powerUp && GAME.powerUp.type === 'shield') {
+            // Shield glow
+            const shieldPulse = Math.sin(GAME.frame * 0.2) * 0.3 + 0.7;
+            ctx.save();
+            ctx.shadowColor = 'rgba(68, 136, 255, ' + shieldPulse + ')';
+            ctx.shadowBlur = 20;
+            ctx.drawImage(GAME.assets.bike, bike.x, bike.y, bike.width, bike.height);
+            ctx.restore();
+        } else {
+            ctx.drawImage(GAME.assets.bike, bike.x, bike.y, bike.width, bike.height);
+        }
     }
 
     // Update and draw traffic (iterate backwards so removals are safe)
@@ -527,8 +671,18 @@ function gameLoop(ts) {
 
         // Collision detection
         if (bike && checkCollision(bike, car)) {
-            gameOver();
-            break;
+            // Shield protects from collision
+            if (GAME.powerUp && GAME.powerUp.type === 'shield') {
+                // Deflect the car
+                car.y = -150;
+                createParticle(car.x + car.width / 2, bike.y, 'powerup');
+                GAME.powerUp = null;
+                GAME.powerUpTimer = 0;
+                updatePowerUpDisplay();
+            } else {
+                gameOver();
+                break;
+            }
         }
     }
 
@@ -551,6 +705,15 @@ function checkCollision(bike, car) {
 
 function updateScore() {
     document.getElementById('scoreDisplay').textContent = GAME.score;
+    
+    // Check achievements
+    if (GAME.score >= 100 && !GAME.achievements.score100) {
+        unlockAchievement('score100', 'Century!', 'Scored 100 points');
+    }
+    
+    if (GAME.score >= 500 && !GAME.achievements.survivor) {
+        unlockAchievement('survivor', 'Road Survivor', 'Scored 500 points');
+    }
 }
 
 function levelUp() {
@@ -565,6 +728,15 @@ function levelUp() {
 function gameOver() {
     GAME.state = 'gameover';
     GAME.shake = 20;
+
+    // Create collision particles
+    if (GAME.entities.bike) {
+        createParticle(
+            GAME.entities.bike.x + GAME.entities.bike.width / 2,
+            GAME.entities.bike.y + GAME.entities.bike.height / 2,
+            'collision'
+        );
+    }
 
     // Vibrate if available
     if (navigator.vibrate) {

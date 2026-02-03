@@ -33,6 +33,7 @@
 
         <!-- Canvas -->
         <canvas id="gameCanvas" width="400" height="700"></canvas>
+        <canvas id="particlesCanvas" width="400" height="700"></canvas>
 
         <!-- HUD -->
         <div id="hud">
@@ -47,6 +48,33 @@
 
         <!-- Pause Button -->
         <button id="pauseBtn" type="button">⏸</button>
+
+        <!-- Power-Up Display -->
+        <div id="powerUpHUD" class="power-up-hud hidden">
+            <div class="power-up-icon">🛡️</div>
+            <div class="power-up-timer"></div>
+        </div>
+
+        <!-- Combo Display -->
+        <div id="comboHUD" class="combo-hud hidden">
+            <div class="combo-text">COMBO</div>
+            <div class="combo-value">×2</div>
+        </div>
+
+        <!-- Coins Display -->
+        <div id="coinsHUD" class="coins-hud">
+            <span class="coin-icon">🪙</span>
+            <span id="coinsCount">0</span>
+        </div>
+
+        <!-- Achievement Toast -->
+        <div id="achievementToast" class="achievement-toast hidden">
+            <div class="achievement-icon">🏆</div>
+            <div class="achievement-details">
+                <div class="achievement-title"></div>
+                <div class="achievement-desc"></div>
+            </div>
+        </div>
 
         <!-- Controls Helper -->
         <div id="controlsHelper">
@@ -80,6 +108,7 @@
         </div>
     </div>
 
+    <script src="premium-features.js" defer></script>
     <script src="game.js" defer></script>
 </body>
 </html>

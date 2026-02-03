@@ -34,6 +34,15 @@ canvas {
     touch-action: none;
 }
 
+#particlesCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 8;
+    background: transparent;
+}
+
 /* Main Menu */
 #mainMenu {
     position: absolute;
@@ -362,4 +371,167 @@ canvas {
 @media (prefers-reduced-motion: reduce) {
     .menu-title { animation: none; }
     .loader { animation: none; }
+}
+
+/* Power-Up HUD */
+.power-up-hud {
+    position: absolute;
+    top: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 16px;
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.95), rgba(255, 165, 0, 0.95));
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(255, 215, 0, 0.5);
+    z-index: 15;
+    animation: powerUpPulse 1s ease-in-out infinite;
+}
+
+@keyframes powerUpPulse {
+    0%, 100% { transform: translateX(-50%) scale(1); }
+    50% { transform: translateX(-50%) scale(1.08); }
+}
+
+.power-up-icon {
+    font-size: 28px;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+
+.power-up-timer {
+    width: 60px;
+    height: 4px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+}
+
+.power-up-timer::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    background: #fff;
+    animation: timerDrain var(--duration, 5s) linear forwards;
+}
+
+@keyframes timerDrain {
+    from { width: 100%; }
+    to { width: 0%; }
+}
+
+/* Combo HUD */
+.combo-hud {
+    position: absolute;
+    top: 70px;
+    right: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 14px;
+    background: linear-gradient(135deg, rgba(138, 43, 226, 0.95), rgba(75, 0, 130, 0.95));
+    border-radius: 10px;
+    box-shadow: 0 4px 14px rgba(138, 43, 226, 0.6);
+    z-index: 15;
+    animation: comboEntry 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes comboEntry {
+    from { transform: scale(0) rotate(-180deg); opacity: 0; }
+    to { transform: scale(1) rotate(0); opacity: 1; }
+}
+
+.combo-text {
+    font-size: 11px;
+    font-weight: 900;
+    color: rgba(255,255,255,0.85);
+    letter-spacing: 1px;
+}
+
+.combo-value {
+    font-size: 24px;
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+/* Coins HUD */
+.coins-hud {
+    position: absolute;
+    top: 70px;
+    left: 15px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 10px;
+    backdrop-filter: blur(6px);
+    z-index: 15;
+    font-size: 18px;
+    font-weight: 900;
+    color: #ffd700;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.4);
+}
+
+.coin-icon {
+    font-size: 20px;
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,0.3));
+}
+
+/* Achievement Toast */
+.achievement-toast {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.98), rgba(255, 140, 0, 0.98));
+    border-radius: 14px;
+    box-shadow: 0 8px 32px rgba(255, 215, 0, 0.6);
+    z-index: 300;
+    min-width: 280px;
+    animation: achievementPop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55), achievementExit 0.4s 2.6s ease-out forwards;
+}
+
+@keyframes achievementPop {
+    0% { transform: translate(-50%, -50%) scale(0) rotate(-180deg); opacity: 0; }
+    70% { transform: translate(-50%, -50%) scale(1.15) rotate(10deg); }
+    100% { transform: translate(-50%, -50%) scale(1) rotate(0); opacity: 1; }
+}
+
+@keyframes achievementExit {
+    to { transform: translate(-50%, -200%); opacity: 0; }
+}
+
+.achievement-icon {
+    font-size: 40px;
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.3));
+}
+
+.achievement-details {
+    flex: 1;
+}
+
+.achievement-title {
+    font-size: 16px;
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    margin-bottom: 3px;
+}
+
+.achievement-desc {
+    font-size: 13px;
+    color: rgba(255,255,255,0.9);
+    font-weight: 600;
 }
