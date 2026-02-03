@@ -11,15 +11,12 @@
     "serve:web": "npx http-server ./web -p 5173 -c-1"
   },
   "devDependencies": {
-    "@capacitor/cli": "^6.1.2",
+    "@capacitor/cli": "^6.2.1",
     "http-server": "^14.1.1",
     "typescript": "^5.7.3"
   },
   "dependencies": {
-    "@capacitor/android": "^6.1.2",
-    "@capacitor/core": "^6.1.2"
-  },
-  "overrides": {
-    "tar": "^7.5.7"
+    "@capacitor/android": "^6.2.1",
+    "@capacitor/core": "^6.2.1"
   }
 }
