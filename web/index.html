@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <!--
+      CSP hardened for mobile WebView + static hosting.
+      - No inline scripts/styles.
+      - No remote network calls (connect-src self).
+      If you later add ads/analytics/CDNs, you'll need to explicitly allow them here.
+    -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-ancestors 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self'; connect-src 'self'; upgrade-insecure-requests;">
+
+    <title>Bike Racer - Ultimate Racing Game</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="gameContainer">
+        <!-- Loading Screen -->
+        <div id="loading">
+            <div class="loader"></div>
+            <div class="loading-text">Loading Game...</div>
+        </div>
+
+        <!-- Main Menu -->
+        <div id="mainMenu">
+            <div class="menu-title">🏍️ BIKE RACER</div>
+            <button class="menu-btn" id="startBtn" type="button">▶ Start Game</button>
+            <button class="menu-btn secondary" id="instructionsBtn" type="button">📖 How to Play</button>
+            <button class="menu-btn secondary" id="settingsBtn" type="button">⚙️ Settings</button>
+        </div>
+
+        <!-- Canvas -->
+        <canvas id="gameCanvas" width="400" height="700"></canvas>
+
+        <!-- HUD -->
+        <div id="hud">
+            <div class="hud-item">
+                <div>Speed: <span id="speedDisplay">0</span></div>
+                <div>Level: <span id="levelDisplay">1</span></div>
+            </div>
+            <div class="hud-item hud-score">
+                Score: <span id="scoreDisplay">0</span>
+            </div>
+        </div>
+
+        <!-- Pause Button -->
+        <button id="pauseBtn" type="button">⏸</button>
+
+        <!-- Controls Helper -->
+        <div id="controlsHelper">
+            Tap LEFT/RIGHT to move • Tilt device to steer
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="gameOver">
+            <div class="game-over-title">GAME OVER!</div>
+            <div class="score-display">Your Score: <span id="finalScore">0</span></div>
+            <div class="high-score">🏆 Best: <span id="highScore">0</span></div>
+            <button class="menu-btn" id="playAgainBtn" type="button">🔄 Play Again</button>
+            <button class="menu-btn secondary" id="mainMenuBtn" type="button">🏠 Main Menu</button>
+        </div>
+
+        <!-- Ad Container (for future monetization) -->
+        <div id="adContainer">
+            Ad Space - 320x50
+        </div>
+    </div>
+
+    <script src="game.js" defer></script>
+</body>
+</html>

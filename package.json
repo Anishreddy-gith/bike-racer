@@ -1,0 +1,25 @@
+{
+  "name": "bike-racer",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Bike Racer - HTML5 game wrapped with Capacitor for Android/iOS.",
+  "type": "module",
+  "scripts": {
+    "cap:android": "npx cap open android",
+    "cap:sync": "npx cap sync",
+    "cap:copy": "npx cap copy",
+    "serve:web": "npx http-server ./web -p 5173 -c-1"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.1.2",
+    "http-server": "^14.1.1",
+    "typescript": "^5.7.3"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.1.2",
+    "@capacitor/core": "^6.1.2"
+  },
+  "overrides": {
+    "tar": "^7.5.7"
+  }
+}
